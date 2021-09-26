@@ -1,0 +1,42 @@
+<h3>Question {n_question}/{n_questions}</h3>
+<p>Please listen to the recordings <b>Reference</b>, <b>A</b>, and
+    <b>B</b> below in their entirety.</p>
+<br/>
+<table>
+    <tr>
+        <th>Reference</th>
+        <th>A</th>
+        <th>B</th>
+    </tr>
+    <tr>
+        <td>
+            <audio controls="" style="width: 300px;">
+                <source src="https://{bucket_name}.s3.{bucket_region}.amazonaws.com/{audio_x}" type="audio/mpeg" />
+            </audio>
+        </td>
+        <td>
+            <audio controls="" style="width: 300px;">
+                <source src="https://{bucket_name}.s3.{bucket_region}.amazonaws.com/{audio_a}" type="audio/mpeg" />
+            </audio>
+        </td>
+        <td>
+            <audio controls="" style="width: 300px;">
+                <source src="https://{bucket_name}.s3.{bucket_region}.amazonaws.com/{audio_b}" type="audio/mpeg" />
+            </audio>
+        </td>
+    </tr>
+</table>
+<br/>
+<p>Choose which of <b>A</b> and <b>B</b> sounds most like the <b>Reference</b></p>
+<div>
+    <input type="radio" id="{n_question}-{category_a}" name="{n_question}-comparison" value="{category_a}" required="true"/>
+    <label for="{n_question}-{category_a}"><b>A</b> sounds most like the <b>Reference</b></label>
+</div>
+<div>
+    <input type="radio" id="{n_question}-{category_b}" name="{n_question}-comparison" value="{category_b}" />
+    <label for="{n_question}-{category_b}"><b>B</b> sounds most like the <b>Reference</b></label>
+</div>
+<br/><br/>
+
+
+

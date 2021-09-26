@@ -1,0 +1,24 @@
+action: create
+credentials: credentials.csv
+s3_region: us-east-2
+s3_bucket: survey-225796
+
+audio_dir: '/home/pmo183/dummy_audio/'
+audio_ext: 'wav'
+assets_dir: assets/
+
+
+
+sandbox: true
+
+title: 'Audio Comparison API Test'
+description: 'Identify which recording sounds most like the reference. Can be completed in <15 min. Pay conditional upon easy 4-question attention check'
+keywords: 'audio, comparison'
+reward: '3.00'
+lifetime: 345600
+duration: 1800
+approval_delay: 259200
+
+max_questions_per_form: 21
+dummy_questions_per_form: 4
+coverage: 1
