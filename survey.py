@@ -332,7 +332,7 @@ def main():
                 dummy_fn = str(ref_fn).replace('reference', 'dummy')
 
                 # add white noise to obtain dummy audio
-                ref_wav, sr = soundfile.read(ref_fn)
+                ref_wav, sr = soundfile.read(str(ref_fn))
                 mag = np.max(ref_wav)
                 noise = np.random.rand(*ref_wav.shape) * .1 * mag - .05 * mag
                 dummy_wav = np.clip(ref_wav + noise, a_min=-1, a_max=1)
@@ -459,23 +459,9 @@ def main():
 
         exit()
 
-        # set questionnaire size: as close to MAX_QUESTIONS as possible while dividing cleanly
-        # try to make sure you fix the divisibility/padding scenario ahead of time with number of
-        # real and dummy questions... maybe even hard-code so duplicates/padding is never an issue?
-
-        # TODO: set sensible defaults for pay, maybe change to per-question computed value where
-        # scipt user only specifies pay per question? check in on other common settings
-        # in academia/industry (e.g. qualifications, auto-approve delay)
-
-        # TODO: associate qualification with worker
-        # mturk.associate_qualification_with_worker
-        # TODO: do titles need to be unique to avoid auto-batching / duplicate workers?
-        # TODO: add QualificationRequirements parameter to HIT creation
-
-
     elif ACTION == 'evaluate':
 
-        # TODO: accept, reject, bonus
+        raise NotImplementedError()
 
         # summarize active HITs
         response = mturk.list_hits()

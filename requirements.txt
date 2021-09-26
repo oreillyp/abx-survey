@@ -1,0 +1,7 @@
+pandas
+pysoundfile
+numpy
+tqdm
+boto3
+xmltodict
+pyyaml

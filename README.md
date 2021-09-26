@@ -10,7 +10,15 @@ This script performs the following simple tasks:
 
 Clone this repository:
 
+```
+git clone https://github.com/oreillyp/abx-survey.git
+```
+
 Install dependencies:
+
+```
+pip install -r requirements.txt
+```
 
 ## Quick Start
 
@@ -41,10 +49,11 @@ Install dependencies:
 7. Preview your survey. As of 2017, HITs created via Amazon's `boto3` SDK are not viewable within the MTurk web interface. To access and manage your HITs within a GUI, simply download [this file](https://raw.githubusercontent.com/jtjacques/mturk-manage/master/mturk-manage.html) from the [MTurk-Manage](https://github.com/jtjacques/mturk-manage) repository and open it in any browser (you will have to provide the user credentials from your `.csv` file).
 
 
-Regardless of whether you launch a survey in sandbox mode or MTurk proper, the script will produce and save the following files to `output/`:
-  * the XML questionnaire for each survey form
-  * any 'dummy' audio generated for the survey
-  * a list of dictionaries, each holding the contents of a survey form, will be pickled and saved as `forms.pkl`
+Regardless of whether you launch a survey in sandbox mode or MTurk proper, the script will produce the following output:
+  * the XML questionnaire for each survey form will be saved to `output/`
+  * any 'dummy' audio generated for the survey will be saved to `audio_dir`
+  * a list of dictionaries, each holding the contents of a survey form, will be pickled and saved as `forms.pkl` in `output/`
+  * all audio used in the survey will be uploaded to the S3 bucket with obfuscated filenames
 
 
 ## Configuration
@@ -56,7 +65,7 @@ The driver script `create_survey.py` accepts the command-line argument `config`;
 | `action` | `create` | must be one of `create`, `evaluate`|
 | `sandbox` | `true` | If `true`, create/evaluate surveys in the MTurk Sandbox environment; it is strongly recommended that you test surveys in the sandbox environment before launching with MTurk proper |
 |`credentials` | `credentials.csv` | a `.csv` file holding AWS client credentials. AWS user agent should be configured with `s3fullaccess` and `amazonmechanicalturkfullaccess` permissions, and the file should contain the fields `Access key ID` and `Secret access key` |
-| `s3_region` | `us-east-1` | AWS S3 bucket region |
+| `s3_region` | `us-east-2` | AWS S3 bucket region |
 | `s3_bucket` | `None` | name of existing AWS S3 bucket to use; if `None`, a new bucket will be created |
 | `audio_dir` | `audio` | path to directory containing survey audio. All files must be named descriptively (`reference_*.ext` or `proposed_*.ext` for a true ABX test; `reference_*.ext`, `baseline_*.ext`, or `proposed_*.ext` for a two-way pseudo-ABX test)|
 | `audio_ext` | `wav` | audio file extension |
@@ -72,3 +81,11 @@ The driver script `create_survey.py` accepts the command-line argument `config`;
 | `max_questions_per_form` | `20` | maximum number of questions a worker will be asked to answer in a single survey |
 | `dummy_questions_per_form` | `4` | number of "listening-check" questions (using a white-noise comparison) inserted into each survey |
 | `coverage` | `1` | number of times each audio file will be evaluated; analogously, the number of workers who can complete each survey form |
+
+
+## To-Do
+
+- [ ] increase radio button size
+- [ ] check on capping requests to public S3 bucket
+- [ ] set sensible qualification defaults and add qualifications to config
+- [ ] manage unique workers (explicit instructions or automatic qualification; either may require a continuously-running script to pull worker/assignment information)

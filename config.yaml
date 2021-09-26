@@ -1,6 +1,6 @@
 action: create
 credentials: credentials.csv
-s3_region: us-east-1
+s3_region: us-east-2
 s3_bucket:
 
 audio_dir: audio/
