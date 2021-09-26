@@ -51,7 +51,7 @@ pip install -r requirements.txt
 
 Regardless of whether you launch a survey in sandbox mode or MTurk proper, the script will produce the following output:
   * the XML questionnaire for each survey form will be saved to `output/`
-  * any 'dummy' audio generated for the survey will be saved to `audio_dir`
+  * any 'dummy' audio generated for the survey will be saved to `audio_dir/`
   * a list of dictionaries, each holding the contents of a survey form, will be pickled and saved as `forms.pkl` in `output/`
   * all audio used in the survey will be uploaded to the S3 bucket with obfuscated filenames
 
@@ -85,7 +85,8 @@ The driver script `create_survey.py` accepts the command-line argument `config`;
 
 ## To-Do
 
+- [ ] add `evaluate` functionality
 - [ ] increase radio button size
-- [ ] check on capping requests to public S3 bucket
+- [ ] check on capping requests to public S3 bucket or using pre-signed URLs
 - [ ] set sensible qualification defaults and add qualifications to config
 - [ ] manage unique workers (explicit instructions or automatic qualification; either may require a continuously-running script to pull worker/assignment information)
