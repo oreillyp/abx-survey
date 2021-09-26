@@ -18,7 +18,7 @@ import argparse
 from os import path
 from pathlib import Path
 from tqdm import tqdm
-from typing import Union
+from typing import Union, List
 
 import boto3  # for managing MTurk, AWS
 import xmltodict
@@ -169,6 +169,53 @@ def decode_filename(filename: str):
     return name + "." + ext
 
 
+def get_qualification_requirements(min_hits_approved: int,
+                                   min_percent_hits_approved: int,
+                                   locales_include: List[dict],
+                                   locales_exclude: List[dict]
+                                   ):
+
+    qualifications = []
+
+    if min_hits_approved is not None:
+        qualifications.append(
+            {
+                'QualificationTypeId': '00000000000000000040',
+                'Comparator': 'GreaterThanOrEqualTo',
+                'IntegerValues': [min_hits_approved],
+                'ActionsGuarded': 'DiscoverPreviewAndAccept'
+            }
+        )
+    if min_percent_hits_approved is not None:
+        qualifications.append(
+            {
+                'QualificationTypeId': '000000000000000000L0',
+                'Comparator': 'GreaterThanOrEqualTo',
+                'IntegerValues': [min_percent_hits_approved],
+                'ActionsGuarded': 'DiscoverPreviewAndAccept'
+            }
+        )
+    if locales_include is not None:
+        qualifications.append(
+            {
+                'QualificationTypeId': '00000000000000000071',
+                'Comparator': 'In',
+                'LocaleValues': locales_include,
+                'ActionsGuarded': 'DiscoverPreviewAndAccept'
+            }
+        )
+    if locales_exclude is not None:
+        qualifications.append(
+            {
+                'QualificationTypeId': '00000000000000000071',
+                'Comparator': 'NotIn',
+                'LocaleValues': locales_exclude,
+                'ActionsGuarded': 'DiscoverPreviewAndAccept'
+            }
+        )
+    return qualifications
+
+
 def main():
 
     args = parse_args()
@@ -237,12 +284,15 @@ def main():
                       aws_secret_access_key=AWS_SECRET
                       )
 
-    if ACTION == 'create':
+    # load or randomly generate survey ID
+    random.seed(datetime.now())
+    digits = string.digits
+    survey_id = config['survey_id'] if config['survey_id'] else ''.join(
+        random.choice(digits) for i in range(6)
+    )
 
-        # randomly generate survey ID
-        random.seed(datetime.now())
-        digits = string.digits
-        survey_id = ''.join(random.choice(digits) for i in range(6))
+    # create new survey
+    if ACTION == 'create_new':
 
         # set output directory
         OUTPUT_DIR = Path(config['output_dir']) / survey_id
@@ -441,7 +491,13 @@ def main():
                     LifetimeInSeconds=LIFETIME,
                     AssignmentDurationInSeconds=DURATION,
                     AutoApprovalDelayInSeconds=APPROVAL_DELAY,
-                    Question=form['final_xml']
+                    Question=form['final_xml'],
+                    QualificationRequirements=get_qualification_requirements(
+                        config['qual_min_hits'],
+                        config['qual_pct_hits'],
+                        config['qual_include_regions'],
+                        config['qual_exclude_regions']
+                    )
                 )
                 print(f'Survey form {form["form_id"]} preview link: '
                       f'https://workersandbox.mturk.com/mturk/preview?groupId='
@@ -457,7 +513,58 @@ def main():
         else:
             print('Exiting; S3 buckets/files and survey files remain')
 
-        exit()
+    # serve from existing forms
+    elif ACTION == 'run_existing':
+
+        # set output directory; materials from existing survey are assumed to
+        # live here
+        OUTPUT_DIR = Path(config['output_dir']) / survey_id
+        ensure_dir(OUTPUT_DIR)
+
+        # if no bucket provided, assume default naming
+        S3_BUCKET = f'survey-{survey_id}' if not S3_BUCKET else S3_BUCKET
+
+        # load forms from pickle
+        forms = None
+        raise NotImplementedError()
+
+        # notify user of cost and pause for input
+        print(f'Total pay amount: '
+              f'${1.4 * COVERAGE * len(forms) * float(PAY_PER_HIT) :.2f} '
+              f'({len(forms)} forms, {COVERAGE} assignments per form, '
+              f'{PAY_PER_HIT} paid per assignment, 40% Amazon surcharge)')
+        print(f'Available prepaid balance: ${mturk.get_account_balance()["AvailableBalance"]}')
+
+        response = input('Finalize HIT creation and charge? [y/n] ')
+        if response.lower().strip() == 'y':
+
+            for form in forms:
+
+                # create HIT
+                print(f'Creating HIT for form {form["form_id"]}')
+                hit = mturk.create_hit(
+                    Title=f'{TITLE} ({survey_id}-{form["form_id"]})',
+                    Description=DESCRIPTION,
+                    Keywords=KEYWORDS,
+                    Reward=PAY_PER_HIT,
+                    MaxAssignments=COVERAGE,  # number of assignments
+                    LifetimeInSeconds=LIFETIME,
+                    AssignmentDurationInSeconds=DURATION,
+                    AutoApprovalDelayInSeconds=APPROVAL_DELAY,
+                    Question=form['final_xml'],
+                    QualificationRequirements=get_qualification_requirements(
+                        config['qual_min_hits'],
+                        config['qual_pct_hits'],
+                        config['qual_include_regions'],
+                        config['qual_exclude_regions']
+                    )
+                )
+                print(f'Survey form {form["form_id"]} preview link: '
+                      f'https://workersandbox.mturk.com/mturk/preview?groupId='
+                      f'{hit["HIT"]["HITGroupId"]}')
+                form['hit_id'] = hit["HIT"]["HITId"]
+                form['hit_group_id'] = hit["HIT"]["HITGroupId"]
+                form['survey_id'] = survey_id
 
     elif ACTION == 'evaluate':
 

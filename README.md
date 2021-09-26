@@ -62,11 +62,12 @@ The driver script `create_survey.py` accepts the command-line argument `config`;
 
 | Field | Default Value | Description |
 |---|---|---|
-| `action` | `create` | must be one of `create`, `evaluate`|
-| `sandbox` | `true` | If `true`, create/evaluate surveys in the MTurk Sandbox environment; it is strongly recommended that you test surveys in the sandbox environment before launching with MTurk proper |
+| `action` | `create_new` | must be one of `create_new`, `run_existing`, `evaluate`|
+| `sandbox` | `true` | If `true`, create/evaluate surveys in the MTurk Sandbox environment. It is strongly recommended that you test surveys in the sandbox environment before launching with MTurk proper |
 |`credentials` | `credentials.csv` | a `.csv` file holding AWS client credentials. AWS user agent should be configured with `s3fullaccess` and `amazonmechanicalturkfullaccess` permissions, and the file should contain the fields `Access key ID` and `Secret access key` |
 | `s3_region` | `us-east-2` | AWS S3 bucket region |
 | `s3_bucket` | `None` | name of existing AWS S3 bucket to use; if `None`, a new bucket will be created |
+| `survey_id` | `None` | identifier for survey; if `None`, will be a randomly generated string of digits. When running with the action `run_existing`, provide the ID of your existing survey here |
 | `audio_dir` | `audio` | path to directory containing survey audio. All files must be named descriptively (`reference_*.ext` or `proposed_*.ext` for a true ABX test; `reference_*.ext`, `baseline_*.ext`, or `proposed_*.ext` for a two-way pseudo-ABX test)|
 | `audio_ext` | `wav` | audio file extension |
 | `assets_dir`| `assets` | directory from which to load HTML survey templates |
@@ -81,6 +82,10 @@ The driver script `create_survey.py` accepts the command-line argument `config`;
 | `max_questions_per_form` | `20` | maximum number of questions a worker will be asked to answer in a single survey |
 | `dummy_questions_per_form` | `4` | number of "listening-check" questions (using a white-noise comparison) inserted into each survey |
 | `coverage` | `1` | number of times each audio file will be evaluated; analogously, the number of workers who can complete each survey form |
+| `qual_min_hits` | `None` | number of accepted HITs required to view and submit survey (integer in \[1, 100\]). If `None`, has no effect |
+| `qual_pct_hits` | `None` | percentage of HITs accepted required to view and submit survey (integer in \[1, 100\]). If `None`, has no effect|
+| `qual_exclude_regions` | `None` | List of locales to exclude; each locale must be a dictionary with the [required format](https://docs.aws.amazon.com/AWSMechTurk/latest/AWSMturkAPI/ApiReference_LocaleDataStructureArticle.html). If `None`, has no effect |
+| `qual_include_regions` | `None` | List of locales to include (all other locales will be rejected); each locale must be a dictionary with the [required format](https://docs.aws.amazon.com/AWSMechTurk/latest/AWSMturkAPI/ApiReference_LocaleDataStructureArticle.html). If `None`, has no effect |
 
 
 ## To-Do
@@ -88,5 +93,4 @@ The driver script `create_survey.py` accepts the command-line argument `config`;
 - [ ] add `evaluate` functionality
 - [ ] increase radio button size
 - [ ] check on capping requests to public S3 bucket or using pre-signed URLs
-- [ ] set sensible qualification defaults and add qualifications to config
 - [ ] manage unique workers (explicit instructions or automatic qualification; either may require a continuously-running script to pull worker/assignment information)
