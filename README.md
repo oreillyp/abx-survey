@@ -6,6 +6,12 @@ This script performs the following simple tasks:
 * Launch surveys as MTurk HITs
 * Compile survey results and compute basic statistics
 
+## Installation
+
+Clone this repository:
+
+Install dependencies:
+
 ## Quick Start
 
 1. If you want to perform a true ABX test, label all audio file pairs as 
@@ -35,6 +41,12 @@ This script performs the following simple tasks:
 7. Preview your survey. As of 2017, HITs created via Amazon's `boto3` SDK are not viewable within the MTurk web interface. To access and manage your HITs within a GUI, simply download [this file](https://raw.githubusercontent.com/jtjacques/mturk-manage/master/mturk-manage.html) from the [MTurk-Manage](https://github.com/jtjacques/mturk-manage) repository and open it in any browser (you will have to provide the user credentials from your `.csv` file).
 
 
+Regardless of whether you launch a survey in sandbox mode or MTurk proper, the script will produce and save the following files to `output/`:
+  * the XML questionnaire for each survey form
+  * any 'dummy' audio generated for the survey
+  * a list of dictionaries, each holding the contents of a survey form, will be pickled and saved as `forms.pkl`
+
+
 ## Configuration
 
 The driver script `create_survey.py` accepts the command-line argument `config`; this must be a path to a `.yaml` configuration file with the following fields:
@@ -46,9 +58,10 @@ The driver script `create_survey.py` accepts the command-line argument `config`;
 |`credentials` | `credentials.csv` | a `.csv` file holding AWS client credentials. AWS user agent should be configured with `s3fullaccess` and `amazonmechanicalturkfullaccess` permissions, and the file should contain the fields `Access key ID` and `Secret access key` |
 | `s3_region` | `us-east-1` | AWS S3 bucket region |
 | `s3_bucket` | `None` | name of existing AWS S3 bucket to use; if `None`, a new bucket will be created |
-| `audio_dir` | `None` | path to directory containing survey audio. All files must be named descriptively (`reference_*.wav` or `proposed_*.wav` for a true ABX test; `reference_*.wav`, `baseline_*.wav`, or `proposed_*.wav` for a two-way pseudo-ABX test)|
+| `audio_dir` | `audio` | path to directory containing survey audio. All files must be named descriptively (`reference_*.ext` or `proposed_*.ext` for a true ABX test; `reference_*.ext`, `baseline_*.ext`, or `proposed_*.ext` for a two-way pseudo-ABX test)|
 | `audio_ext` | `wav` | audio file extension |
 | `assets_dir`| `assets` | directory from which to load HTML survey templates |
+| `output_dir` | `output` | directory to which outputs are saved |
 | `title` | `None` | title of survey; this is what MTurk workers will see |
 | `description` | `None` | short description of survey; this is what MTurk workers will see before they decide to accept the survey |
 | `keywords`  | `'audio, comparison'` | survey descriptors |

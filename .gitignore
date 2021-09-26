@@ -1,3 +1,7 @@
 credentials.csv
 *.xml
 dummy_audio/*
+output/*
+!output/.gitkeep
+audio/*
+!audio/.gitkeep

@@ -18,6 +18,7 @@ import argparse
 from os import path
 from pathlib import Path
 from tqdm import tqdm
+from typing import Union
 
 import boto3  # for managing MTurk, AWS
 import xmltodict
@@ -41,6 +42,12 @@ def parse_args():
     )
 
     return parser.parse_args()
+
+
+def ensure_dir(directory: Union[str, Path]):
+    directory = str(directory)
+    if len(directory) > 0 and not os.path.exists(directory):
+        os.makedirs(directory)
 
 
 def build_survey_xml(form: dict,
@@ -113,6 +120,9 @@ def build_survey_xml(form: dict,
 
 
 def caesar(s, k):
+    """
+    Caesar cipher; adapted from https://stackoverflow.com/a/34578873
+    """
 
     upper = {a: chr(a) for a in range(65, 91)}
     lower = {a: chr(a) for a in range(97, 123)}
@@ -132,6 +142,9 @@ def caesar(s, k):
 
 
 def encode_filename(filename: str):
+    """
+    Apply Caesar cipher to filename (audio URLs remain visible within MTurk)
+    """
 
     # leave extension
     ext = filename.split(".")[-1]
@@ -143,6 +156,9 @@ def encode_filename(filename: str):
 
 
 def decode_filename(filename: str):
+    """
+    Decode Caesar cipher
+    """
 
     # leave extension
     ext = filename.split(".")[-1]
@@ -201,7 +217,7 @@ def main():
     assert 'outro.html' in survey_files
     assert 'question.html' in survey_files
 
-    # initialize AWS clients
+    # initialize AWS clients (MTurk & S3)
     if config['sandbox']:
         mturk = boto3.client('mturk',
                              region_name=MTURK_REGION,
@@ -215,7 +231,6 @@ def main():
                              aws_access_key_id=AWS_KEY_ID,
                              aws_secret_access_key=AWS_SECRET
                              )
-
     s3 = boto3.client('s3',
                       region_name=S3_REGION,
                       aws_access_key_id=AWS_KEY_ID,
@@ -228,6 +243,10 @@ def main():
         random.seed(datetime.now())
         digits = string.digits
         survey_id = ''.join(random.choice(digits) for i in range(6))
+
+        # set output directory
+        OUTPUT_DIR = Path(config['output_dir']) / survey_id
+        ensure_dir(OUTPUT_DIR)
 
         # if no S3 bucket is given, create public bucket
         if S3_BUCKET is None:
@@ -245,7 +264,7 @@ def main():
         audio_baseline = list(Path(AUDIO_DIR).rglob(f'baseline_*.{AUDIO_EXT}'))
         audio_proposed = list(Path(AUDIO_DIR).rglob(f'proposed_*.{AUDIO_EXT}'))
 
-        # sort by comparison index
+        # sort by comparison index (keep files matched)
         audio_reference.sort(key=lambda x: str(x).split("_")[-1], reverse=False)
         audio_baseline.sort(key=lambda x: str(x).split("_")[-1], reverse=False)
         audio_proposed.sort(key=lambda x: str(x).split("_")[-1], reverse=False)
@@ -274,6 +293,7 @@ def main():
             question_template = f.read()
 
         # create survey forms
+        print("Generating survey forms & uploading audio")
         forms = []
         for i in tqdm(range(n_forms), total=n_forms):
 
@@ -394,8 +414,8 @@ def main():
             form['final_xml'] = survey
             forms.append(form)
 
-            # log survey XML
-            with open(Path(AUDIO_DIR) / f'survey-{survey_id}-{form["id"]}.xml', 'w+') as f:
+            # log survey XML to output directory
+            with open(OUTPUT_DIR / f'survey-{survey_id}-{form["form_id"]}.xml', 'w+') as f:
                 f.write(survey)
 
         # notify user of cost and pause for input
@@ -411,9 +431,9 @@ def main():
             for form in forms:
 
                 # create HIT
-                print(f'Creating HIT for form {form["id"]}')
+                print(f'Creating HIT for form {form["form_id"]}')
                 hit = mturk.create_hit(
-                    Title=f'{TITLE} ({survey_id}-{form["id"]})',
+                    Title=f'{TITLE} ({survey_id}-{form["form_id"]})',
                     Description=DESCRIPTION,
                     Keywords=KEYWORDS,
                     Reward=PAY_PER_HIT,
@@ -423,7 +443,7 @@ def main():
                     AutoApprovalDelayInSeconds=APPROVAL_DELAY,
                     Question=form['final_xml']
                 )
-                print(f'Survey form {form["id"]} preview link: '
+                print(f'Survey form {form["form_id"]} preview link: '
                       f'https://workersandbox.mturk.com/mturk/preview?groupId='
                       f'{hit["HIT"]["HITGroupId"]}')
                 form['hit_id'] = hit["HIT"]["HITId"]
@@ -431,12 +451,11 @@ def main():
                 form['survey_id'] = survey_id
 
             # save all form information (associate forms with HITs)
-            with open(Path(AUDIO_DIR) / 'forms.pkl', 'wb') as f:
+            with open(OUTPUT_DIR / 'forms.pkl', 'wb') as f:
                 pickle.dump(forms, f)
 
         else:
             print('Exiting; S3 buckets/files and survey files remain')
-            exit()
 
         exit()
 
@@ -475,50 +494,6 @@ def main():
 
     else:
         raise ValueError(f'Invalid survey action {ACTION}')
-
-
-def parse_HIT_results(client: boto3.client, hit_id: str):
-    """
-    Given MTurk client object and HIT ID, tabulate assignment results for HIT
-    and save to .csv file
-    """
-    assignments = client.list_assignments_for_hit(
-        HITId=hit_id,
-        AssignmentStatuses=['Submitted']
-    )['Assignments']
-
-    for assignment in assignments:
-
-        info = f"""
-        \n------------------------------------------------------------\n
-        Assignment ID: {assignment['AssignmentId']}
-        Worker ID: {assignment['WorkerId']}\n
-        Status: {assignment['AssignmentStatus']}
-        Submission Time: {assignment['SubmitTime']}
-        Auto-Approval Time: {assignment['AutoApprovalTime']}
-        """
-        print(info)
-
-        answers = xmltodict.parse(assignment['Answer'])
-
-        if isinstance(answers['QuestionFormAnswers']['Answer'], List):
-            for answer in answers['QuestionFormAnswers']['Answer']:
-                result = f"""
-                Field: {answer['QuestionIdentifier']}
-                Response: {answer['FreeText']}
-                """
-                print(result)
-        else:
-            result = f"""
-                Field: {answers['QuestionFormAnswers']['Answer']['QuestionIdentifier']}
-                Response: {answers['QuestionFormAnswers']['Answer']['FreeText']}
-            """
-            print(result)
-
-        # use RegEx to parse all ABX questions
-
-    # TODO: save to CSV file; start by grabbing headers from HIT answer fields
-
 
 
 if __name__ == "__main__":

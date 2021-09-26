@@ -1,17 +1,16 @@
 action: create
 credentials: credentials.csv
-s3_region: us-east-2
-s3_bucket: survey-225796
+s3_region: us-east-1
+s3_bucket:
 
-audio_dir: '/home/pmo183/dummy_audio/'
-audio_ext: 'wav'
+audio_dir: audio/
+audio_ext: wav
 assets_dir: assets/
-
-
+output_dir: output/
 
 sandbox: true
 
-title: 'Audio Comparison API Test'
+title: 'Audio Comparison Test'
 description: 'Identify which recording sounds most like the reference. Can be completed in <15 min. Pay conditional upon easy 4-question attention check'
 keywords: 'audio, comparison'
 reward: '3.00'
