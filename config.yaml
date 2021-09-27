@@ -12,7 +12,7 @@ output_dir: output/
 sandbox: true
 
 title: 'Audio Comparison Pilot Test'
-description: 'Identify which recording sounds most like the reference (20 questions). Can be completed in <15 min. Pay conditional upon easy 4-question attention check'
+description: 'Identify which recording sounds most like the reference (21 questions). Can be completed in <10 min. Pay conditional upon 4 easy attention-check questions placed within survey'
 keywords: 'audio, comparison'
 reward: '2.00'
 lifetime: 345600
@@ -23,8 +23,8 @@ max_questions_per_form: 21
 dummy_questions_per_form: 4
 coverage: 1
 
-qual_min_hits: 1000
-qual_pct_hits: 97
+qual_min_hits:
+qual_pct_hits:
 qual_exclude_regions:
 qual_include_regions:
   - Country: US

@@ -91,8 +91,7 @@ def build_survey_xml(form: dict,
         <h2>Audio Comparison Test</h2>
         <p>In this task, you will be asked to listen to {n_questions} sets of 
         three short audio recordings (<b>Reference</b>, <b>A</b>, and <b>B</b>). 
-        You will be asked to transcribe the <b>Reference</b> recording, and then 
-        to select which of <b>A</b> or <b>B</b> sounds most like the 
+        For each set, you will be asked to select which of <b>A</b> or <b>B</b> sounds most like the 
         <b>Reference</b>.</p>
         <br/>
 
