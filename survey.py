@@ -383,8 +383,14 @@ def main():
                 # add white noise to obtain dummy audio
                 ref_wav, sr = soundfile.read(str(ref_fn))
                 mag = np.max(ref_wav)
-                noise = np.random.rand(*ref_wav.shape) * .1 * mag - .05 * mag
-                dummy_wav = np.clip(ref_wav + noise, a_min=-1, a_max=1)
+
+                if config['dummy_fade_noise']:
+                    noise = np.random.rand(*ref_wav.shape) * .1 * mag - .05 * mag
+                    mag_scale = np.linspace(0, 1, ref_wav.shape[0])**3
+                    dummy_wav = np.clip(ref_wav + noise*mag_scale, a_min=-1, a_max=1)
+                else:
+                    noise = np.random.rand(*ref_wav.shape) * .1 * mag - .05 * mag
+                    dummy_wav = np.clip(ref_wav + noise, a_min=-1, a_max=1)
 
                 # save dummy audio
                 soundfile.write(dummy_fn, dummy_wav, sr)
@@ -443,7 +449,7 @@ def main():
 
             # load introduction template
             with open(Path(SURVEY_DIR) / 'intro.html') as f:
-                intro = f.read()
+                intro = f.read().format(n_dummy=DUMMY_QUESTIONS)
 
             # load closing statement template
             with open(Path(SURVEY_DIR) / 'outro.html') as f:

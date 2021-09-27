@@ -9,7 +9,7 @@ audio_ext: wav
 assets_dir: assets/
 output_dir: output/
 
-sandbox: true
+sandbox: false
 
 title: 'Audio Comparison Pilot Test'
 description: 'Identify which recording sounds most like the reference (21 questions). Can be completed in <10 min. Pay conditional upon 4 easy attention-check questions placed within survey'
@@ -21,10 +21,11 @@ approval_delay: 259200
 
 max_questions_per_form: 21
 dummy_questions_per_form: 4
-coverage: 1
+dummy_fade_noise: false
+coverage: 5
 
-qual_min_hits:
-qual_pct_hits:
+qual_min_hits: 1000
+qual_pct_hits: 97
 qual_exclude_regions:
 qual_include_regions:
   - Country: US
