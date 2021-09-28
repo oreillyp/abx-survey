@@ -81,6 +81,7 @@ The driver script `create_survey.py` accepts the command-line argument `config`;
 | `approval_delay` | `259200` | amount of time after completion of survey until work is automatically approved and workers are paid |
 | `max_questions_per_form` | `20` | maximum number of questions a worker will be asked to answer in a single survey |
 | `dummy_questions_per_form` | `4` | number of "listening-check" questions (using a white-noise comparison) inserted into each survey |
+| `dummy_fade_noise` | `false` | if `true`, fade in white noise gradually for "listening-check" questions to make the comparison more difficult |
 | `coverage` | `1` | number of times each audio file will be evaluated; analogously, the number of workers who can complete each survey form |
 | `qual_min_hits` | `None` | number of accepted HITs required to view and submit survey (integer in \[1, 100\]). If `None`, has no effect |
 | `qual_pct_hits` | `None` | percentage of HITs accepted required to view and submit survey (integer in \[1, 100\]). If `None`, has no effect|
